@@ -11,7 +11,6 @@ Local, color histogram equalization is used by calling histogramEqualization("fi
 Local, grayscale histogram equalization is used by calling histogramEqualization("file_name", "local", "gray"),
 '''
 import cv2
-import rgb2hsi
 
 
 # Histogram Equalization function
@@ -22,8 +21,6 @@ def histogramEqualization(image: str, adjustType: str = "global", colorInfo: str
     # If user wants grayscale output, reload as grayscale image
     if(colorInfo == "gray"):
         img = cv2.imread(image, 0)
-    # Determine image size; used for creating output image
-    imgSize = img.shape
 
     # If image number of dimensions is 2 perform grayscale operations
     if(img.ndim == 2):
@@ -40,23 +37,23 @@ def histogramEqualization(image: str, adjustType: str = "global", colorInfo: str
     else:
         # Create HSI representation of image
         # Used to manipulate Intensity channel of image
-        HSI = rgb2hsi.rgb_to_hsi(img, imgSize)
-        I = HSI[:, :, 2]
+        HSV = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+        V = HSV[:, :, 2]
 
         # Perform global histogram equilazation
         if(adjustType == 'global'):
-            equalized = cv2.equalizeHist(I)
+            equalized = cv2.equalizeHist(V)
 
         # Perform local adaptive histogram equilazation
         else:
             clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
-            equalized = clahe.apply(I)
+            equalized = clahe.apply(V)
 
         # Use new Intensity channel to form HSI image
-        HSI[:, :, 2] = equalized
+        HSV[:, :, 2] = equalized
 
         # Return back to rgb space
-        output = rgb2hsi.hsi_to_rgb(HSI, imgSize)
+        output = cv2.cvtColor(HSV, cv2.COLOR_HSV2BGR)
 
     # Display input and output image
     cv2.imshow("intput", img)
